@@ -122,7 +122,7 @@ export const PageOptionsForm: React.FC<PageOptionsFormProps> = ({ options, onCha
                 </div>
                 <div className="flex items-center">
                   <input id="extract-simple" name="extraction-mode" type="radio" className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300"
-                    checked={options.only_main_content && options.extraction_mode === 'simple'}
+                    checked={options.only_main_content && (options.extraction_mode === 'simple' || !options.extraction_mode)}
                     onChange={() => onChange({ only_main_content: true, extraction_mode: 'simple' })}
                   />
                   <label htmlFor="extract-simple" className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-200">
