@@ -19,8 +19,8 @@ class HtmlFilter:
             extracted_content = trafilatura.extract(self.html_content, output_format='html', include_comments=False, include_tables=True)
             if extracted_content is not None:
                 return extracted_content
-            # Fallback to original content if extraction fails
-            return self.html_content
+            # Fallback to simple mode processing if extraction fails
+            extraction_mode = 'simple'
 
         # The rest of the logic is for simple filtering or when only_main_content is false
         self.tree = html.fromstring(self.html_content)
