@@ -16,7 +16,11 @@ class HtmlFilter:
 
         if self.scrape_options.get("only_main_content") and extraction_mode == 'advanced':
             # Advanced mode using trafilatura
-            return trafilatura.extract(self.html_content, output_format='html', include_comments=False, include_tables=True)
+            extracted_content = trafilatura.extract(self.html_content, output_format='html', include_comments=False, include_tables=True)
+            if extracted_content is not None:
+                return extracted_content
+            # Fallback to original content if extraction fails
+            return self.html_content
 
         # The rest of the logic is for simple filtering or when only_main_content is false
         self.tree = html.fromstring(self.html_content)
