@@ -28,6 +28,20 @@ export const PageOptionsForm: React.FC<PageOptionsFormProps> = ({ options, onCha
   const [newHeaderValue, setNewHeaderValue] = useState('');
   const [newExcludeTag, setNewExcludeTag] = useState('');
   const [newIncludeTag, setNewIncludeTag] = useState('');
+  const [newCustomSelector, setNewCustomSelector] = useState('');
+
+  const handleAddCustomSelector = () => {
+    if (newCustomSelector.trim()) {
+      const updatedSelectors = [...(options.custom_only_main_content_selectors || []), newCustomSelector.trim()];
+      onChange({ custom_only_main_content_selectors: updatedSelectors });
+      setNewCustomSelector('');
+    }
+  };
+
+  const handleRemoveCustomSelector = (selectorToRemove: string) => {
+    const updatedSelectors = (options.custom_only_main_content_selectors || []).filter(selector => selector !== selectorToRemove);
+    onChange({ custom_only_main_content_selectors: updatedSelectors });
+  };
 
   const handleInputChange = (field: keyof PageOptions, value: string | boolean | string[]) => {
     if (field === 'exclude_tags' || field === 'include_tags') {
@@ -94,12 +108,85 @@ export const PageOptionsForm: React.FC<PageOptionsFormProps> = ({ options, onCha
           description="Configure how content should be extracted from web pages"
         >
           <div className="space-y-4">
-            <Switch
-              label="Extract Main Content"
-              description="Automatically detect and extract the main content area of the page, removing navigation, ads, and other irrelevant content"
-              checked={options.only_main_content}
-              onChange={(checked) => handleInputChange('only_main_content', checked)}
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Extraction Mode</label>
+              <div className="mt-2 space-y-3">
+                <div className="flex items-center">
+                  <input id="extract-none" name="extraction-mode" type="radio" className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300"
+                    checked={!options.only_main_content}
+                    onChange={() => onChange({ only_main_content: false })}
+                  />
+                  <label htmlFor="extract-none" className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    None <span className="text-xs text-gray-500 dark:text-gray-400">- Keep all original content</span>
+                  </label>
+                </div>
+                <div className="flex items-center">
+                  <input id="extract-simple" name="extraction-mode" type="radio" className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300"
+                    checked={options.only_main_content && (options.extraction_mode === 'simple' || !options.extraction_mode)}
+                    onChange={() => onChange({ only_main_content: true, extraction_mode: 'simple' })}
+                  />
+                  <label htmlFor="extract-simple" className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Simple <span className="text-xs text-gray-500 dark:text-gray-400">- Remove common boilerplate tags</span>
+                  </label>
+                </div>
+                {options.only_main_content && options.extraction_mode === 'simple' && (
+                  <div className="pl-7 pt-2 space-y-2">
+                    <div className="flex items-center space-x-1 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Additional selectors to remove
+                      </label>
+                      <InfoTooltip content="Specify custom CSS selectors to remove in addition to the default 'header', 'footer', etc." />
+                    </div>
+                    <div className="flex space-x-2">
+                      <FormInput
+                        label=""
+                        value={newCustomSelector}
+                        onChange={setNewCustomSelector}
+                        placeholder="e.g., .cookie-banner, #promo-div"
+                        className="flex-grow"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleAddCustomSelector}
+                        disabled={!newCustomSelector.trim()}
+                        variant="outline"
+                        size="sm"
+                        className="!px-3 !py-2 h-[40px] mt-1"
+                      >
+                        <PlusIcon className="h-5 w-5" />
+                      </Button>
+                    </div>
+                    {options.custom_only_main_content_selectors && options.custom_only_main_content_selectors.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {options.custom_only_main_content_selectors.map((tag) => (
+                          <span
+                            key={tag}
+                            className="inline-flex items-center bg-gray-100 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded-full text-xs"
+                          >
+                            {tag}
+                            <button
+                              onClick={() => handleRemoveCustomSelector(tag)}
+                              className="ml-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                            >
+                              <XMarkIcon className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div className="flex items-center">
+                  <input id="extract-advanced" name="extraction-mode" type="radio" className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300"
+                    checked={options.only_main_content && options.extraction_mode === 'advanced'}
+                    onChange={() => onChange({ only_main_content: true, extraction_mode: 'advanced' })}
+                  />
+                  <label htmlFor="extract-advanced" className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Advanced <span className="text-xs text-gray-500 dark:text-gray-400">- AI-powered extraction</span>
+                  </label>
+                </div>
+              </div>
+            </div>
             <Switch
               label="Include HTML"
               description="Include the raw HTML content in addition to the extracted text"
