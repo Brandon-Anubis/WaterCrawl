@@ -83,10 +83,14 @@ class HtmlFilter:
         all_selectors_to_remove = exclude_non_main_tags + custom_selectors
 
         for selector in all_selectors_to_remove:
-            for element in self.tree.cssselect(selector):
-                # Check if the element has a parent before trying to remove it
-                if element.getparent() is not None:
-                    element.getparent().remove(element)
+            try:
+                for element in self.tree.cssselect(selector):
+                    # Check if the element has a parent before trying to remove it
+                    if element.getparent() is not None:
+                        element.getparent().remove(element)
+            except Exception:
+                # Skip invalid CSS selectors
+                continue
 
     def _get_cleaned_html(self):
         # Return the final cleaned HTML
