@@ -23,7 +23,11 @@ class HtmlFilter:
             extraction_mode = 'simple'
 
         # The rest of the logic is for simple filtering or when only_main_content is false
-        self.tree = html.fromstring(self.html_content)
+        try:
+            self.tree = html.fromstring(self.html_content)
+        except Exception:
+            # Return original content if HTML parsing fails
+            return self.html_content
 
         # Step 1: Handle includeTags if provided
         if self.scrape_options.get("include_tags"):
