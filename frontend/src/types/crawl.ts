@@ -63,6 +63,8 @@ export interface PageOptions {
   wait_time: number;
   include_html: boolean;
   only_main_content: boolean;
+  custom_only_main_content_selectors?: string[];
+  extraction_mode?: 'simple' | 'advanced';
   include_links: boolean;
   timeout?: number;
   accept_cookies_selector?: string;

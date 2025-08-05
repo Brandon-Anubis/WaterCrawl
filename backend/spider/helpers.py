@@ -1,14 +1,26 @@
 import re
 import html2text
+import trafilatura
 from lxml import html
 
 
 class HtmlFilter:
     def __init__(self, html_content, scrape_options):
-        self.tree = html.fromstring(html_content)
+        self.html_content = html_content
         self.scrape_options = scrape_options
+        # Parse with lxml only when needed for simple mode
+        self.tree = None
 
     def filter_html(self):
+        extraction_mode = self.scrape_options.get("extraction_mode", "simple")
+
+        if self.scrape_options.get("only_main_content") and extraction_mode == 'advanced':
+            # Advanced mode using trafilatura
+            return trafilatura.extract(self.html_content, output_format='html', include_comments=False, include_tables=True)
+
+        # The rest of the logic is for simple filtering or when only_main_content is false
+        self.tree = html.fromstring(self.html_content)
+
         # Step 1: Handle includeTags if provided
         if self.scrape_options.get("include_tags"):
             return self._handle_include_tags()
@@ -20,8 +32,8 @@ class HtmlFilter:
         if self.scrape_options.get("exclude_tags"):
             self._handle_exclude_tags()
 
-        # Step 4: If onlyMainContent is specified, remove non-main content
-        if self.scrape_options.get("only_main_content"):
+        # Step 4: If onlyMainContent and simple mode, remove non-main content
+        if self.scrape_options.get("only_main_content") and extraction_mode == 'simple':
             self._remove_non_main_content()
 
         # Return the final cleaned HTML
@@ -60,9 +72,17 @@ class HtmlFilter:
     def _remove_non_main_content(self):
         # Define a list of tags to exclude from non-main content
         exclude_non_main_tags = ["header", "footer", "nav", "aside"]
-        for tag in exclude_non_main_tags:
-            for element in self.tree.cssselect(tag):
-                element.getparent().remove(element)
+
+        # Add custom selectors from options
+        custom_selectors = self.scrape_options.get("custom_only_main_content_selectors", [])
+
+        all_selectors_to_remove = exclude_non_main_tags + custom_selectors
+
+        for selector in all_selectors_to_remove:
+            for element in self.tree.cssselect(selector):
+                # Check if the element has a parent before trying to remove it
+                if element.getparent() is not None:
+                    element.getparent().remove(element)
 
     def _get_cleaned_html(self):
         # Return the final cleaned HTML

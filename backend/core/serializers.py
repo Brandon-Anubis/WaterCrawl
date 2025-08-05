@@ -34,6 +34,12 @@ class PageOptionSerializer(serializers.Serializer):
     )
     include_html = serializers.BooleanField(default=False)
     only_main_content = serializers.BooleanField(default=True)
+    custom_only_main_content_selectors = serializers.ListField(
+        required=False, child=serializers.CharField(), default=[]
+    )
+    extraction_mode = serializers.ChoiceField(
+        choices=["simple", "advanced"], required=False, default="simple"
+    )
     include_links = serializers.BooleanField(default=False)
     timeout = serializers.IntegerField(
         required=False,
